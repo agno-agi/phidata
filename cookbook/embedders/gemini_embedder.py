@@ -1,3 +1,5 @@
+import os
+
 from phi.agent import AgentKnowledge
 from phi.vectordb.pgvector import PgVector
 from phi.embedder.google import GeminiEmbedder
@@ -13,7 +15,7 @@ knowledge_base = AgentKnowledge(
     vector_db=PgVector(
         db_url="postgresql+psycopg://ai:ai@localhost:5532/ai",
         table_name="gemini_embeddings",
-        embedder=GeminiEmbedder(dimensions=1536),
+        embedder=GeminiEmbedder(dimensions=1536, api_key=os.getenv("GOOGLE_API_KEY")),
     ),
     num_documents=2,
 )
