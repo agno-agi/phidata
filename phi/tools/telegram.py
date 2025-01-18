@@ -1,18 +1,24 @@
-from typing import Union
-import httpx
+from os import getenv
+from typing import Union, Optional
 from phi.tools import Toolkit
+from phi.utils.log import logger
 
+try:
+    import httpx
+except ImportError:
+    raise ImportError("`httpx` not installed. Please install with `pip install httpx`.")
 
 class TelegramTools(Toolkit):
     base_url = "https://api.telegram.org"
 
-    def __init__(self, token: str, chat_id: Union[str, int]):
+    def __init__(self, chat_id: Union[str, int], token: Optional[str] = None):
         super().__init__(name="telegram")
-        self.token = token
-        self.chat_id = chat_id
 
-        if not self.token or not self.chat_id:
-            raise ValueError("Token or chat ID not provided.")
+        self.token = token or getenv("TELEGRAM_TOKEN")
+        if not self.token:
+            logger.error("TELEGRAM_TOKEN not set. Please set the TELEGRAM_TOKEN environment variable.")
+
+        self.chat_id = chat_id
 
         self.register(self.send_message)
 
