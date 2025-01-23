@@ -10,9 +10,9 @@ from agno.storage.agent.sqlite import SqliteAgentStorage
 from agno.tools.dalle import DalleTools
 from agno.tools.duckduckgo import DuckDuckGoTools
 from agno.tools.exa import ExaTools
+from agno.tools.huge_chunk import HugeTextChunkReturnTool
 from agno.tools.yfinance import YFinanceTools
 from agno.tools.youtube import YouTubeTools
-from agno.tools.huge_chunk import HugeTextChunkReturnTool
 
 agent_storage_file: str = "tmp/agents.db"
 image_agent_storage_file: str = "tmp/image_agent.db"
@@ -161,14 +161,12 @@ huge_chunk_agent = Agent(
     tools=[HugeTextChunkReturnTool()],
     description="You are an agent that can return large chunks of text for testing purposes.",
     instructions=[
-        "When asked, use the `get_huge_text_chunk` tool to return a large text chunk.",
-        "You can use this to test how the system handles large amounts of text."
+        "Your job is to return the huge text given by HugeTextChunkReturnTool class .",
     ],
     debug_mode=True,
-    markdown=True,
-    add_history_to_messages=True,
-    add_datetime_to_instructions=True,
-    storage=SqliteAgentStorage(table_name="huge_chunk_agent", db_file=agent_storage_file),
+    storage=SqliteAgentStorage(
+        table_name="huge_chunk_agent", db_file=agent_storage_file
+    ),
 )
 
 app = Playground(
