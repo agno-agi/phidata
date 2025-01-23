@@ -12,6 +12,7 @@ from agno.tools.duckduckgo import DuckDuckGoTools
 from agno.tools.exa import ExaTools
 from agno.tools.yfinance import YFinanceTools
 from agno.tools.youtube import YouTubeTools
+from agno.tools.huge_chunk import HugeTextChunkReturnTool
 
 agent_storage_file: str = "tmp/agents.db"
 image_agent_storage_file: str = "tmp/image_agent.db"
@@ -153,6 +154,23 @@ youtube_agent = Agent(
     markdown=True,
 )
 
+huge_chunk_agent = Agent(
+    name="Huge Chunk Agent",
+    agent_id="huge-chunk-agent",
+    model=OpenAIChat(id="gpt-4o"),
+    tools=[HugeTextChunkReturnTool()],
+    description="You are an agent that can return large chunks of text for testing purposes.",
+    instructions=[
+        "When asked, use the `get_huge_text_chunk` tool to return a large text chunk.",
+        "You can use this to test how the system handles large amounts of text."
+    ],
+    debug_mode=True,
+    markdown=True,
+    add_history_to_messages=True,
+    add_datetime_to_instructions=True,
+    storage=SqliteAgentStorage(table_name="huge_chunk_agent", db_file=agent_storage_file),
+)
+
 app = Playground(
     agents=[
         simple_agent,
@@ -161,6 +179,7 @@ app = Playground(
         youtube_agent,
         research_agent,
         image_agent,
+        huge_chunk_agent,
     ]
 ).get_app()
 
