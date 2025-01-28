@@ -24,7 +24,69 @@ def sidebar_widget() -> None:
         # Example Games
         st.markdown("#### 🎮 Example Games")
         if st.button("🐍 Snake Game"):
-            add_message("user", "Generate a simple snake game with a green snake, red apples, and a dark background. The game should have smooth controls and increase speed as the snake grows.")
+            add_message(
+                "user",
+                """Generate a classic Snake game with the following specifications:
+
+Core Mechanics:
+- Snake controlled by arrow keys
+- Green snake body with a slightly darker head
+- Red apple as collectible food
+- Dark gray background (#333333) for contrast
+- Smooth, responsive controls
+
+Gameplay Features:
+- Snake grows longer when eating apples
+- Score display in top-right corner
+- Gradually increasing speed as score grows
+- Game over on wall or self collision
+- Clean game over state management:
+  * Show score and high score
+  * Provide restart button that properly resets game state
+  * Clear all previous game over messages
+  * Reset snake position, length, and speed
+  * Remove any lingering UI elements
+
+Visual Polish:
+- Subtle grid pattern on background
+- Smooth snake movement animation
+- Simple particle effect when eating
+- Clean, minimal UI elements
+- Game over screen:
+  * Semi-transparent overlay
+  * Centered game over message
+  * Score display
+  * Clear restart button
+  * Fade in/out transitions
+
+Sound Effects:
+- Soft 'blip' when collecting food
+- Quick 'swoosh' when turning
+- Bass 'thud' on game over
+
+State Management:
+- Proper cleanup of event listeners on game over
+- Complete state reset on restart
+- Separate game state from UI state
+- Clear separation of game logic and rendering
+- Proper handling of animation frames
+
+Additional Features:
+- High score persistence using localStorage
+- Quick restart with spacebar or click
+- Brief tutorial on first launch
+- Mobile-friendly touch controls
+
+Technical Implementation:
+- Use HTML5 Canvas for rendering
+- Implement requestAnimationFrame for smooth animation
+- Proper event listener cleanup
+- Modular code structure with separate game state management
+- Clean initialization and reset functions
+
+Please generate this game using HTML5 Canvas and JavaScript, ensuring proper state cleanup and reset functionality."""
+            )
+            # add_message("user", "Generate a simple snake game with a green snake, red apples, and a dark background. The game should have smooth controls and increase speed as the snake grows.")
             st.session_state["generate_game"] = True
         if st.button("🧱 Breakout Clone"):
             add_message("user", "Generate a breakout clone with colorful blocks, a paddle at the bottom, and a bouncing ball. The game should have multiple levels with increasing difficulty and a score display.")

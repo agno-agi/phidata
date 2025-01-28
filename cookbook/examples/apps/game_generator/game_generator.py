@@ -52,10 +52,13 @@ def get_game_generator_agent(session_id: Optional[str] = None, model_id: str = "
         instructions=[
             "Create a game based on the user's prompt. "
             "The game should be HTML5, completely self-contained and must be runnable simply by opening on a browser.",
+            "Require the user to click a button to start the game.",
             "Ensure the game has an alert that pops up if the user dies and then allows the user to restart or exit the game.",
             "Add full screen mode to the game. Always make the button in the top-left corner of the canvas.",
             "Use user-friendly colors and make the game canvas large enough for the game to be playable on a larger screen.",
             "Ensure the HTML is as stylistically pretty as possible, using modern design principles and aesthetics.",
+            "When the user is playing, the up and down arrows should not scroll the page.",
+            "Starting the game should not go to full screen mode.",
             "Don't add any instructions inside the HTML code, just the game code.",
         ],
         response_model=GameOutput,
