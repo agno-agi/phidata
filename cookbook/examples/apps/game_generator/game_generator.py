@@ -65,10 +65,12 @@ class GameGenerator(Workflow):
         response_model=QAOutput,
     )
 
-    def run(self, game_description: str) -> Iterator[RunResponse]:
-        logger.info(f"Game description: {game_description}")
+    def __init__(self, session_id: str, storage: SqliteWorkflowStorage):
+        super().__init__(session_id=session_id, storage=storage)
+        self.storage.initialize_session(session_id)
 
-        game_output = self.game_developer.run(game_description)
+    def run(self, game_description: str) -> List[str]:
+        logger.info(f"Running game generation for session: {self.session_id}")
 
         if (
             game_output
@@ -84,6 +86,10 @@ class GameGenerator(Workflow):
                 content="Sorry, could not generate a game.",
             )
             return
+
+        # Store the result in the session
+        self.storage.store_result(self.session_id, game_code)
+
 
         logger.info("QA'ing the game code")
         qa_input = {
@@ -127,13 +133,11 @@ if __name__ == "__main__":
     hash_of_description = hash_string_sha256(game_description)
 
     # Initialize the investment analyst workflow
-    game_generator = GameGenerator(
-        session_id=f"game-gen-{hash_of_description}",
-        storage=SqliteWorkflowStorage(
-            table_name="game_generator_workflows",
-            db_file="tmp/workflows.db",
-        ),
+    storage = SqliteWorkflowStorage(
+        table_name="game_generator_workflows",
+        db_file="tmp/workflows.db",
     )
+    generator = GameGenerator(session_id=f"game-gen-{hash_of_description}", storage=storage)
 
     # Execute the workflow
     result: Iterator[RunResponse] = game_generator.run(
