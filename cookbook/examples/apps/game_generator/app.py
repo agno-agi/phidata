@@ -150,6 +150,7 @@ def main() -> None:
                     game_output_path.write_text(game_code)
 
                     add_message("assistant", game_output.content)
+                    st.rerun()
                 else:
                     st.error("Sorry, could not generate a game.")
             except Exception as e:
