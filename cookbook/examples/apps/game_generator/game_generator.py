@@ -28,7 +28,6 @@ storage = PostgresAgentStorage(
 )
 
 class GameOutput(BaseModel):
-    reasoning: str = Field(..., description="Explain your reasoning")
     code: str = Field(..., description="The html5 code for the game")
     instructions: str = Field(..., description="Instructions how to play the game")
 
@@ -68,4 +67,5 @@ def get_game_generator_agent(session_id: Optional[str] = None, model_id: str = "
 
 if __name__ == "__main__":
     agent = get_game_generator_agent()
-    agent.run({"role": "user", "content": "Generate a simple snake game."})
+    response = agent.run({"role": "user", "content": "Generate a simple snake game."})
+    print(response.content.code)
