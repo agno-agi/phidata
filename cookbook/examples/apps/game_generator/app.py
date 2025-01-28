@@ -1,8 +1,18 @@
 from pathlib import Path
-
 import streamlit as st
 from agno.utils.string import hash_string_sha256
 from game_generator import GameGenerator, SqliteWorkflowStorage
+from utils import (
+    CUSTOM_CSS,
+    add_message,
+    display_tool_calls,
+    rename_session_widget,
+    session_selector_widget,
+    sidebar_widget,
+)
+
+# Apply custom CSS
+st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 st.set_page_config(
     page_title="HTML5 Game Generator",
@@ -10,12 +20,54 @@ st.set_page_config(
     layout="wide",
 )
 
-
 st.title("Game Generator")
-st.markdown("##### 🎮 built using [Agno](https://github.com/phidatahq/agno)")
-
+st.markdown("##### 🎮 built using [Agno](https://github.com/agno-agi/agno)")
 
 def main() -> None:
+    ####################################################################
+    # Model selector
+    ####################################################################
+    model_options = {
+        "gpt-4o": "openai:gpt-4o",
+        "gemini-2.0-flash-exp": "google:gemini-2.0-flash-exp",
+        "claude-3-5-sonnet": "anthropic:claude-3-5-sonnet-20241022",
+    }
+    selected_model = st.sidebar.selectbox(
+        "Select a model",
+        options=list(model_options.keys()),
+        index=0,
+        key="model_selector",
+    )
+    model_id = model_options[selected_model]
+
+    ####################################################################
+    # Initialize Game Generator
+    ####################################################################
+    game_generator: GameGenerator
+    if (
+        "game_generator" not in st.session_state
+        or st.session_state["game_generator"] is None
+        or st.session_state.get("current_model") != model_id
+    ):
+        st.session_state["game_generator"] = GameGenerator(
+            session_id=f"game-gen-{model_id}",
+            storage=SqliteWorkflowStorage(
+                table_name="game_generator_workflows",
+                db_file="tmp/workflows.db",
+            ),
+        )
+        st.session_state["current_model"] = model_id
+    else:
+        game_generator = st.session_state["game_generator"]
+
+    ####################################################################
+    # Sidebar
+    ####################################################################
+    sidebar_widget()
+
+    ####################################################################
+    # Game Description Input
+    ####################################################################
     game_description = st.sidebar.text_area(
         "🎮 Describe your game",
         value="An asteroids game. Make sure the asteroids move randomly and are random sizes.",
@@ -24,6 +76,9 @@ def main() -> None:
 
     generate_game = st.sidebar.button("Generate Game! 🚀")
 
+    ####################################################################
+    # Example Games
+    ####################################################################
     st.sidebar.markdown("## Example Games")
     example_games = [
         "A simple snake game where the snake grows longer as it eats food",
@@ -37,18 +92,13 @@ def main() -> None:
             st.session_state["game_description"] = game
             generate_game = True
 
+    ####################################################################
+    # Generate Game
+    ####################################################################
     if generate_game:
         with st.spinner("Generating your game... This might take a minute..."):
             try:
                 hash_of_description = hash_string_sha256(game_description)
-                game_generator = GameGenerator(
-                    session_id=f"game-gen-{hash_of_description}",
-                    storage=SqliteWorkflowStorage(
-                        table_name="game_generator_workflows",
-                        db_file="tmp/workflows.db",
-                    ),
-                )
-
                 result = list(game_generator.run(game_description=game_description))
 
                 games_dir = Path(__file__).parent.joinpath("games")
@@ -82,9 +132,10 @@ def main() -> None:
             except Exception as e:
                 st.error(f"Failed to generate game: {str(e)}")
 
-    st.sidebar.markdown("---")
-    if st.sidebar.button("Restart"):
-        st.rerun()
-
+    ####################################################################
+    # Session selector
+    ####################################################################
+    session_selector_widget(game_generator, model_id)
+    rename_session_widget(game_generator)
 
 main()
