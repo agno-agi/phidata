@@ -10,7 +10,7 @@ st.set_page_config(
     page_icon="🏥",
     layout="wide",
 )
-st.markdown("##### 🏥 built using [Agno](https://github.com/phidatahq/agno)")
+st.markdown("##### 🏥 built using [Agno](https://github.com/agno-agi/agno)")
 
 
 def main():
@@ -62,12 +62,11 @@ def main():
                     "🔍 Analyze Image", type="primary", use_container_width=True
                 )
 
-
                 additional_info = st.text_area(
-                            "Provide additional context about the image (e.g., patient history, symptoms)",
-                            placeholder="Enter any relevant information here..."
-                        )
-        
+                    "Provide additional context about the image (e.g., patient history, symptoms)",
+                    placeholder="Enter any relevant information here...",
+                )
+
         with analysis_container:
             if analyze_button:
                 image_path = "temp_medical_image.png"
@@ -80,8 +79,8 @@ def main():
                         agno_image = AgnoImage(filepath=image_path)
                         prompt = (
                             f"Analyze this medical image considering the following context: {additional_info}"
-                            if additional_info else
-                            "Analyze this medical image and provide detailed findings."
+                            if additional_info
+                            else "Analyze this medical image and provide detailed findings."
                         )
                         response = agent.run(
                             prompt,
