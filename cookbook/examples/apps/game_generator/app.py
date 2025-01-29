@@ -12,6 +12,7 @@ from utils import (
     sidebar_widget,
     about_widget,
 )
+import logging
 
 nest_asyncio.apply()
 
@@ -34,137 +35,163 @@ st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 st.title("Game Generator")
 st.markdown("##### 🎮 built using [Agno](https://github.com/agno-agi/agno)")
 
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('game_generator.log')
+    ]
+)
+
 def main() -> None:
-    ####################################################################
-    # Model selector
-    ####################################################################
-    model_options = {
-        "gpt-4o": "openai:gpt-4o",
-        "gemini-2.0-flash-exp": "google:gemini-2.0-flash-exp",
-        "claude-3-5-sonnet": "anthropic:claude-3-5-sonnet-20241022",
-    }
-    selected_model = st.sidebar.selectbox(
-        "Select a model",
-        options=list(model_options.keys()),
-        index=0,
-        key="model_selector",
-    )
-    model_id = model_options[selected_model]
-
-    ####################################################################
-    # Initialize Game Generator Agent
-    ####################################################################
-    game_generator_agent: Agent
-    if (
-        "game_generator_agent" not in st.session_state
-        or st.session_state["game_generator_agent"] is None
-        or st.session_state.get("current_model") != model_id
-    ):
-        game_generator_agent = get_game_generator_agent(
-            model_id=model_id
-        )
-        st.session_state["game_generator_agent"] = game_generator_agent
-        st.session_state["current_model"] = model_id
-    else:
-        game_generator_agent = st.session_state["game_generator_agent"]
-
-    ####################################################################
-    # Load Agent Session from the database
-    ####################################################################
     try:
-        st.session_state["game_generator_agent_session_id"] = game_generator_agent.load_session()
-    except Exception:
-        st.warning("Could not create Agent session, is the database running?")
-        return
-    
-    ####################################################################
-    # Load runs from memory
-    ####################################################################
-    agent_runs = game_generator_agent.memory.runs
-    if len(agent_runs) > 0:
-        logger.debug("Loading run history")
-        st.session_state["messages"] = []
-        for _run in agent_runs:
-            if _run.message is not None:
-                add_message(_run.message.role, _run.message.content)
-            if _run.response is not None:
-                add_message("assistant", _run.response.content)
-    else:
-        logger.debug("No run history found")
-        st.session_state["messages"] = []
+        ####################################################################
+        # Model selector
+        ####################################################################
+        model_options = {
+            "gpt-4o": "openai:gpt-4o",
+            "gemini-2.0-flash-exp": "google:gemini-2.0-flash-exp",
+            "claude-3-5-sonnet": "anthropic:claude-3-5-sonnet-20241022",
+        }
+        selected_model = st.sidebar.selectbox(
+            "Select a model",
+            options=list(model_options.keys()),
+            index=0,
+            key="model_selector",
+        )
+        model_id = model_options[selected_model]
 
-    ####################################################################
-    # Sidebar
-    ####################################################################
-    sidebar_widget()
+        ####################################################################
+        # Initialize Game Generator Agent
+        ####################################################################
+        game_generator_agent: Agent
+        if (
+            "game_generator_agent" not in st.session_state
+            or st.session_state["game_generator_agent"] is None
+            or st.session_state.get("current_model") != model_id
+        ):
+            game_generator_agent = get_game_generator_agent(
+                model_id=model_id
+            )
+            st.session_state["game_generator_agent"] = game_generator_agent
+            st.session_state["current_model"] = model_id
+        else:
+            game_generator_agent = st.session_state["game_generator_agent"]
 
-    ####################################################################
-    # Game Description Input
-    ####################################################################
-    if prompt := st.chat_input("🎮 Describe your game"):
-        add_message("user", prompt)
-        st.session_state["generate_game"] = True
+        ####################################################################
+        # Load Agent Session from the database
+        ####################################################################
+        try:
+            st.session_state["game_generator_agent_session_id"] = game_generator_agent.load_session()
+        except Exception:
+            st.warning("Could not create Agent session, is the database running?")
+            return
+        
+        ####################################################################
+        # Load runs from memory
+        ####################################################################
+        agent_runs = game_generator_agent.memory.runs
+        if len(agent_runs) > 0:
+            logger.debug("Loading run history")
+            st.session_state["messages"] = []
+            for _run in agent_runs:
+                if _run.message is not None:
+                    add_message(_run.message.role, _run.message.content)
+                if _run.response is not None:
+                    add_message("assistant", _run.response.content)
+        else:
+            logger.debug("No run history found")
+            st.session_state["messages"] = []
 
-    ####################################################################
-    # Display chat history and render games
-    ####################################################################
-    for message in st.session_state.get("messages", []):
-        if message["role"] in ["user", "assistant"]:
-            _content = message["content"]
-            if _content is not None:
-                print(f"Message content: {_content}")
-                if isinstance(_content, GameOutput):
-                    with st.chat_message(message["role"]):
-                        st.subheader("Play the Game")
-                        st.components.v1.html(_content.code, height=700, scrolling=False)
+        ####################################################################
+        # Sidebar
+        ####################################################################
+        sidebar_widget()
 
-                        st.subheader("Game Instructions")
-                        st.write(_content.instructions)
+        ####################################################################
+        # Game Description Input
+        ####################################################################
+        if prompt := st.chat_input("🎮 Describe your game"):
+            add_message("user", prompt)
+            st.session_state["generate_game"] = True
 
-                        st.download_button(
-                            label="Download Game HTML",
-                            data=_content.code,
-                            file_name="game.html",
-                            mime="text/html",
-                        )
-                else:
-                    with st.chat_message(message["role"]):
-                        st.markdown(_content)
+        ####################################################################
+        # Display chat history and render games
+        ####################################################################
+        for message in st.session_state.get("messages", []):
+            if message["role"] in ["user", "assistant"]:
+                _content = message["content"]
+                if _content is not None:
+                    print(f"Message content: {_content}")
+                    if isinstance(_content, GameOutput):
+                        with st.chat_message(message["role"]):
+                            st.subheader("Play the Game")
+                            st.components.v1.html(_content.code, height=700, scrolling=False)
 
-    ####################################################################
-    # Generate Game
-    ####################################################################
-    last_message = (
-        st.session_state["messages"][-1] if st.session_state["messages"] else None
-    )
-    if st.session_state.get("generate_game", False):
-        with st.spinner("Generating your game... This might take a minute..."):
-            try:
-                game_output = game_generator_agent.run({"role": "user", "content": last_message["content"]})
+                            st.subheader("Game Instructions")
+                            st.write(_content.instructions)
 
-                if game_output and game_output.content and isinstance(game_output.content, GameOutput):
-                    game_code = game_output.content.code
+                            st.download_button(
+                                label="Download Game HTML",
+                                data=_content.code,
+                                file_name="game.html",
+                                mime="text/html",
+                            )
+                    else:
+                        with st.chat_message(message["role"]):
+                            st.markdown(_content)
 
-                    # Store the resulting code
-                    game_output_path = Path(__file__).parent.joinpath(f"games/{st.session_state['game_generator_agent_session_id']}.html")
-                    game_output_path.write_text(game_code)
+        ####################################################################
+        # Generate Game
+        ####################################################################
+        last_message = (
+            st.session_state["messages"][-1] if st.session_state["messages"] else None
+        )
+        if st.session_state.get("generate_game", False):
+            with st.spinner("Generating your game... This might take a minute..."):
+                try:
+                    logger.info(f"Generating game with message: {last_message}")
+                    game_output = game_generator_agent.run({"role": "user", "content": last_message["content"]})
+                    
+                    logger.debug(f"Game output received: {type(game_output)}")
+                    if game_output and game_output.content and isinstance(game_output.content, GameOutput):
+                        game_code = game_output.content.code
+                        logger.debug("Successfully extracted game code")
 
-                    add_message("assistant", game_output.content)
-                    st.rerun()
-                else:
-                    st.error("Sorry, could not generate a game.")
-            except Exception as e:
-                st.error(f"Failed to generate game: {str(e)}")
+                        # Store the resulting code
+                        game_output_path = Path(__file__).parent.joinpath(f"games/{st.session_state['game_generator_agent_session_id']}.html")
+                        game_output_path.write_text(game_code)
+                        logger.info(f"Game code written to {game_output_path}")
 
-    ####################################################################
-    # Session selector
-    ####################################################################
-    session_management_widget(game_generator_agent, model_id)
+                        add_message("assistant", game_output.content)
+                        st.rerun()
+                    else:
+                        error_msg = f"Invalid game output format: {type(game_output)}"
+                        logger.error(error_msg)
+                        st.error("Sorry, could not generate a game.")
+                except Exception as e:
+                    logger.error(f"Failed to generate game", exc_info=True)
+                    st.error(f"Failed to generate game: {str(e)}")
 
-    ####################################################################
-    # About section
-    ####################################################################
-    about_widget()
+        ####################################################################
+        # Session selector
+        ####################################################################
+        session_management_widget(game_generator_agent, model_id)
+
+        ####################################################################
+        # About section
+        ####################################################################
+        about_widget()
+
+    except Exception as e:
+        logger.error("Main app error", exc_info=True)
+        st.error(f"Application error: {str(e)}")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        logger.error("Fatal application error", exc_info=True)
+        st.error("A fatal error occurred. Please check the logs.")
