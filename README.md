@@ -1,3 +1,12 @@
+<div align="center" style="background-color: #f0f8ff; padding: 20px; margin-bottom: 20px; border: 2px solid #4a90e2; border-radius: 8px;">
+  <h2 style="color: #4a90e2; margin: 0;">
+    🚨 Phidata is now Agno! 🚨
+  </h2>
+  <p style="margin: 10px 0;">
+    We've moved! Check out our new home at <a href="https://github.com/agno-agi/agno" style="color: #4a90e2; font-weight: bold;">Agno AGI</a>
+  </p>
+</div>
+
 <h1 align="center" id="top">
   phidata
 </h1>
