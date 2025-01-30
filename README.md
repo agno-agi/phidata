@@ -7,10 +7,6 @@
   </p>
 </div>
 
-<h1 align="center" id="top">
-  phidata
-</h1>
-
 <p align="center">
   <a href="https://docs.phidata.com">
     <img src="https://img.shields.io/badge/Read%20the%20Documentation-Click%20Here-green?style=for-the-badge&logo=read-the-docs" alt="Read the Docs">
