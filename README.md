@@ -3,7 +3,7 @@
     🚨 Phidata is now Agno! 🚨
   </h2>
   <p style="margin: 10px 0;">
-    We've moved! Check out our new home at <a href="https://github.com/agno-agi/agno" style="color: #4a90e2; font-weight: bold;">Agno AGI</a>
+    We've moved! Check out our new home at <a href="https://github.com/AgnoAgi/agno" style="color: #4a90e2; font-weight: bold;">Agno AGI</a>
   </p>
 </div>
 
